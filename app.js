@@ -1,34 +1,58 @@
-console.log('Starting app.js')
+const fs = require('fs')
+const _ = require('lodash')
+const yargs = require('yargs')
 
-// const fs = require('fs')
-// const _ = require('lodash')
-const argv = require('yargs').argv
 const notes = require('./notes.js')
 
-var command = argv.command
-var message
-var note
-
-console.log('Command: ', argv.command)
+const titleOptions = {
+  describe: 'Title of note',
+  demand: true,
+  alias: 't'
+}
+const bodyOptions = {
+  describe: 'Body of note',
+  demand: true,
+  alias: 'b'
+}
+const argv = yargs
+  .command('add', 'Add a new note', {
+    title: titleOptions,
+    body: bodyOptions
+  })
+  .command('list', 'List all notes')
+  .command('read', 'Read a note', {
+    title: titleOptions
+  })
+  .command('remove', 'Remove a note', {
+    title: titleOptions
+  })
+  .help()
+  .argv
+var command = argv._[0]
 
 if (command === 'add') {
-  note = notes.addNote(argv.title, argv.body)
+  var note = notes.addNote(argv.title, argv.body)
   if (note) {
-    console.log('ADD NOTE: ')
+    console.log('Note created')
     notes.logNote(note)
   } else {
-    console.log(`ERROR title ${argv.title} already taken`)
+    console.log('Note title taken')
   }
 } else if (command === 'list') {
-  console.log('LIST NOTES')
-  notes.getAll()
+  var allNotes = notes.getAll()
+  console.log(`Printing ${allNotes.length} note(s).`)
+  allNotes.forEach((note) => notes.logNote(note))
 } else if (command === 'read') {
   note = notes.getNote(argv.title)
-  message = note ? notes.logNote(note) : `Note ${argv.title} not found`
-  console.log(message)
+  if (note) {
+    console.log('Note found')
+    notes.logNote(note)
+  } else {
+    console.log('Note not found')
+  }
 } else if (command === 'remove') {
-  var isRemoved = notes.removeNote(argv.title)
-  message = isRemoved ? `Note ${argv.title} removed successfully` : `Note ${argv.title} not found`
+  var noteRemoved = notes.removeNote(argv.title)
+  var message = noteRemoved ? 'Note was removed' : 'Note not found'
   console.log(message)
 } else {
   console.log('Command not recognized')
